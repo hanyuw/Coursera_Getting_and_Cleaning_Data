@@ -45,8 +45,13 @@ test_data = read.table("UCI HAR Dataset/test/X_test.txt")
 ## 5 STANDING
 ## 6 LAYING
 
+## Read labels for both datasets:
 train_label = read.table("UCI HAR Dataset/train/y_train.txt")
 test_label = read.table("UCI HAR Dataset/test/y_test.txt")
+
+## Read subject for both datasets:
+train_subject = read.table("UCI HAR Dataset/train/subject_train.txt")
+test_subject = read.table("UCI HAR Dataset/test/subject_test.txt")
 
 ## features: List of all features (561 features):
 features = read.table("UCI HAR Dataset/features.txt")
@@ -66,19 +71,15 @@ paste("features is of class ", class(features), ". Its dimension is ", dim(featu
 
 ```{r Merge Table, cache = TRUE}
 ## Combine the labels and dataset:
-train = cbind(train_label, train_data)
-train$subject = "trainingset"
-
-test = cbind(test_label, test_data)
-test$subject = "testingset"
-
+train = cbind(train_label, train_subject, train_data)
+test = cbind(test_label, test_subject, test_data)
 
 ## Merging the table:
 ## Did not know if there is any way to reduce the complexity.
 ## Bdata and Mdata operate twice on the dataframe.
 Bdata = rbind(train, test)
 Mdata = cbind(1:nrow(Bdata), Bdata)
-names(Mdata) = c("ID", "Labels", as.character(features[,2]), "subject")
+names(Mdata) = c("ID", "Labels", "subject", as.character(features[,2]))
 ```
 
 
@@ -92,12 +93,11 @@ measurements = grep("([Mm][Ee][Aa][Nn])|([Ss][Tt][Dd])", names(Mdata), value = T
 measurements = measurements[!grepl("(mean[Ff]req)|(angle)", measurements)]
 
 ## Locates these columns in the dataframe:
-msT = Mdata[ ,c("ID", "Labels", measurements, "subject")]
+msT = Mdata[ ,c("ID", "Labels", "subject", measurements)]
 #head(msT)
 ```
 
 ### 3. Uses descriptive activity names to name the activities in the data set
-
 
 ```{r activity, cache = TRUE}
 ## Making the activity names according to labels:
@@ -133,9 +133,8 @@ desName = gsub("-X", " in X direction", ignore.case = TRUE, desName)
 desName = gsub("-Y", " in Y direction", ignore.case = TRUE, desName)
 desName = gsub("-Z", " in Z direction", ignore.case = TRUE, desName)
 
-
 names(msT) = desName
-#dim(msT)
+#head(msT)
 ```
 
 ### 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
@@ -149,10 +148,11 @@ meltT = melt(msT, id = keyFeature, measure.vars = msFeature)
 
 ## dcast table:
 dcTable = dcast(meltT, subject + activity ~ variable, mean)
+#str(dcTable)
 ```
 
 
 ```{r Write table, results='hide'}
 ## Write dcast table:
-write.table(dcTable, "tidydata.txt", row.name=FALSE)
+write.table(dcTable, "tidydata.txt", row.name = FALSE)
 ```

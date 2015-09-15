@@ -92,8 +92,13 @@ test_data = read.table(&quot;UCI HAR Dataset/test/X_test.txt&quot;)
 ## 5 STANDING
 ## 6 LAYING
 
+## Read labels for both datasets:
 train_label = read.table(&quot;UCI HAR Dataset/train/y_train.txt&quot;)
 test_label = read.table(&quot;UCI HAR Dataset/test/y_test.txt&quot;)
+
+## Read subject for both datasets:
+train_subject = read.table(&quot;UCI HAR Dataset/train/subject_train.txt&quot;)
+test_subject = read.table(&quot;UCI HAR Dataset/test/subject_test.txt&quot;)
 
 ## features: List of all features (561 features):
 features = read.table(&quot;UCI HAR Dataset/features.txt&quot;)</code></pre>
@@ -101,19 +106,15 @@ features = read.table(&quot;UCI HAR Dataset/features.txt&quot;)</code></pre>
 <div id="merges-the-training-and-the-test-sets-to-create-one-data-set." class="section level3">
 <h3>1. Merges the training and the test sets to create one data set.</h3>
 <pre class="r"><code>## Combine the labels and dataset:
-train = cbind(train_label, train_data)
-train$subject = &quot;trainingset&quot;
-
-test = cbind(test_label, test_data)
-test$subject = &quot;testingset&quot;
-
+train = cbind(train_label, train_subject, train_data)
+test = cbind(test_label, test_subject, test_data)
 
 ## Merging the table:
 ## Did not know if there is any way to reduce the complexity.
 ## Bdata and Mdata operate twice on the dataframe.
 Bdata = rbind(train, test)
 Mdata = cbind(1:nrow(Bdata), Bdata)
-names(Mdata) = c(&quot;ID&quot;, &quot;Labels&quot;, as.character(features[,2]), &quot;subject&quot;)</code></pre>
+names(Mdata) = c(&quot;ID&quot;, &quot;Labels&quot;, &quot;subject&quot;, as.character(features[,2]))</code></pre>
 </div>
 <div id="extracts-only-the-measurements-on-the-mean-and-standard-deviation-for-each-measurement." class="section level3">
 <h3>2. Extracts only the measurements on the mean and standard deviation for each measurement.</h3>
@@ -124,7 +125,7 @@ measurements = grep(&quot;([Mm][Ee][Aa][Nn])|([Ss][Tt][Dd])&quot;, names(Mdata),
 measurements = measurements[!grepl(&quot;(mean[Ff]req)|(angle)&quot;, measurements)]
 
 ## Locates these columns in the dataframe:
-msT = Mdata[ ,c(&quot;ID&quot;, &quot;Labels&quot;, measurements, &quot;subject&quot;)]
+msT = Mdata[ ,c(&quot;ID&quot;, &quot;Labels&quot;, &quot;subject&quot;, measurements)]
 #head(msT)</code></pre>
 </div>
 <div id="uses-descriptive-activity-names-to-name-the-activities-in-the-data-set" class="section level3">
@@ -160,9 +161,8 @@ desName = gsub(&quot;-X&quot;, &quot; in X direction&quot;, ignore.case = TRUE, 
 desName = gsub(&quot;-Y&quot;, &quot; in Y direction&quot;, ignore.case = TRUE, desName)
 desName = gsub(&quot;-Z&quot;, &quot; in Z direction&quot;, ignore.case = TRUE, desName)
 
-
 names(msT) = desName
-#dim(msT)</code></pre>
+#head(msT)</code></pre>
 </div>
 <div id="from-the-data-set-in-step-4-creates-a-second-independent-tidy-data-set-with-the-average-of-each-variable-for-each-activity-and-each-subject." class="section level3">
 <h3>5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.</h3>
@@ -173,9 +173,10 @@ meltT = melt(msT, id = keyFeature, measure.vars = msFeature)
 #head(meltT)
 
 ## dcast table:
-dcTable = dcast(meltT, subject + activity ~ variable, mean)</code></pre>
+dcTable = dcast(meltT, subject + activity ~ variable, mean)
+#str(dcTable)</code></pre>
 <pre class="r"><code>## Write dcast table:
-write.table(dcTable, &quot;tidydata.txt&quot;, row.name=FALSE)</code></pre>
+write.table(dcTable, &quot;tidydata.txt&quot;, row.name = FALSE)</code></pre>
 </div>
 
 
