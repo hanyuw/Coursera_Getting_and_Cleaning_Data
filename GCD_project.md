@@ -1,11 +1,6 @@
----
-title: "Getting and Cleaning Data Project"
-author: "Halley Wang"
-date: "September 4, 2015"
-output: 
-  html_document: 
-    keep_md: yes
----
+# Getting and Cleaning Data Project
+Halley Wang  
+September 4, 2015  
 
 The purpose of this project is to demonstrate your ability to collect, work with, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. You will be graded by your peers on a series of yes/no questions related to the project. You will be required to submit: 1) a tidy data set as described below, 2) a link to a Github repository with your script for performing the analysis, and 3) a code book that describes the variables, the data, and any transformations or work that you performed to clean up the data called CodeBook.md. You should also include a README.md in the repo with your scripts. This repo explains how all of the scripts work and how they are connected.  
 
@@ -18,12 +13,11 @@ You should create one R script called run_analysis.R that does the following.
 [Dataset](https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip)
 
 
-```{r golbal_options, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, result = "asis", message=FALSE, fig.height=7, fig.width=12)
-```
 
 
-```{r load package, message=FALSE}
+
+
+```r
 library(ggplot2)
 library(dplyr)
 library(reshape2)
@@ -31,7 +25,8 @@ library(reshape2)
 
 
 ### Read the Data from UCI HAR Dataset
-```{r load data, cache = TRUE}
+
+```r
 ## training data set (561 features of 7352 observations):
 train_data = read.table("UCI HAR Dataset/train/X_train.txt")
 
@@ -64,19 +59,12 @@ ActLabel = read.table("UCI HAR Dataset/activity_labels.txt")
 features = read.table("UCI HAR Dataset/features.txt")
 ```
 
-```{r Brief Review, cache = TRUE, results='hide', echo=FALSE}
-## For monitoring size and class of the dataset:
-paste("train_data is of class ", class(train_data), ". Its dimension is ", dim(train_data)[1], "*", dim(train_data)[2], ".", "\n", sep = "")
 
-paste("test_data is of class ", class(test_data), ". Its dimension is ", dim(test_data)[1],"*", dim(test_data)[2], ".", sep = "")
-
-paste("features is of class ", class(features), ". Its dimension is ", dim(features)[1], "*", dim(features)[2],".", sep = "")
-
-```
 
 ### 1. Merges the training and the test sets to create one data set.
 
-```{r Merge Table, cache = TRUE}
+
+```r
 ## Combine the labels and dataset:
 train = cbind(train_label, train_subject, train_data)
 test = cbind(test_label, test_subject, test_data)
@@ -92,7 +80,8 @@ names(Mdata) = c("ID", "Labels", "subject", as.character(features[,2]))
 
 ### 2. Extracts only the measurements on the mean and standard deviation for each measurement.
 
-```{r match measurement, cache = TRUE}
+
+```r
 ## Scratch all mean and std column names:
 measurements = grep("([Mm][Ee][Aa][Nn])|([Ss][Tt][Dd])", names(Mdata), value = TRUE)
 
@@ -106,7 +95,8 @@ msT = Mdata[ ,c("ID", "Labels", "subject", measurements)]
 
 ### 3. Uses descriptive activity names to name the activities in the data set
 
-```{r activity, cache = TRUE}
+
+```r
 ## Making the activity names according to labels:
 #msT$Labels = factor(msT$Labels, labels = c("Walking", "Walking upstairs", "Walking downstairs", "Sitting", "Standing", "Laying"))
 
@@ -131,7 +121,8 @@ msT$subject = factor(msT$subject)
 
 ### 4. Appropriately labels the data set with descriptive variable names.
 
-```{r change column names, cache = TRUE}
+
+```r
 ## Storing the name of the column:
 desName = names(msT)
 
@@ -157,7 +148,8 @@ names(msT) = desName
 
 ### 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
 
-```{r summarize table, cache = TRUE}
+
+```r
 ## Melting table by activity and subject
 keyFeature = c("activity", "subject")
 msFeature = names(msT)[-match(c("ID", keyFeature), names(msT))]
@@ -170,7 +162,8 @@ dcTable = dcast(meltT, subject + activity ~ variable, mean)
 ```
 
 
-```{r Write table, results='hide'}
+
+```r
 ## Write dcast table:
 write.table(dcTable, "tidydata.txt", row.name = FALSE)
 ```
