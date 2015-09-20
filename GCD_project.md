@@ -26,21 +26,52 @@ library(reshape2)
 
 ### Read the Data from UCI HAR Dataset
 
+
 ```r
+## Check if the file directory exists,
+## if not, then creat one:
+if (!file.exists("GCD_project")) {
+        dir.create("GCD_project")
+}
+
+## Move to the working directory
+## Notice this changing working directory will work only for this specific trunk.
+## Every following R-code trunk will need to reset the working directory again:
+setwd("./GCD_project")
+
+## Create the file information by Url:
+fileUrl = "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+fileName = "getdata_dataset.zip"
+zipName = "UCI HAR Dataset"
+
+## Download and unzip file:
+if (!file.exists(fileName)) {
+        download.file(url = fileUrl, destfile = fileName)
+}
+
+if (!file.exists(zipName)) {
+        unzip(fileName)       
+}
+
+### Record the download data:
+dateDownloaded = date()
+dateDownloaded
+```
+
+```
+## [1] "Sun Sep 20 12:16:03 2015"
+```
+
+
+```r
+## Every following R-code trunk will need to reset the working directory again:
+setwd("./GCD_project")
+
 ## training data set (561 features of 7352 observations):
 train_data = read.table("UCI HAR Dataset/train/X_train.txt")
 
 ## test data set (561 features of 2947 observations):
 test_data = read.table("UCI HAR Dataset/test/X_test.txt")
-
-
-## training adn test data labels: 
-## 1 WALKING
-## 2 WALKING_UPSTAIRS
-## 3 WALKING_DOWNSTAIRS
-## 4 SITTING
-## 5 STANDING
-## 6 LAYING
 
 ## Read labels for both datasets:
 train_label = read.table("UCI HAR Dataset/train/y_train.txt")
@@ -69,7 +100,7 @@ features = read.table("UCI HAR Dataset/features.txt")
 train = cbind(train_label, train_subject, train_data)
 test = cbind(test_label, test_subject, test_data)
 
-## Merging the table:
+## Merging tables
 ## Did not know if there is any way to reduce the complexity.
 ## Bdata and Mdata operate twice on the dataframe.
 Bdata = rbind(train, test)
